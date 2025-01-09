@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Now</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align content starting from the top */
+            align-items: center;
+            position: relative;
+            background: url(spaceman.jpg) no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Dark overlay on background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8); /* Transparansi lebih tinggi */
+            z-index: -1;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 5px 0 0;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 40px 60px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+            display: none;
+        }
+
+        button {
+            background-color: #5C6BC0;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3F51B5;
+        }
+
+        .result {
+            font-size: 64px;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .status {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+            color: yellow;
+            animation: blink 1s infinite;
+        }
+
+        .success {
+            font-size: 24px;
+            color: #32ff3a;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Keyframes for blinking effect */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .start-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .connecting {
+            font-size: 24px;
+            color: yellow;
+            font-weight: bold;
+            animation: blink 1s infinite;
+            display: none;
+            opacity: 1;
+            transition: opacity 2s ease-out;
+        }
+
+        .sukses {
+            font-size: 24px;
+            color: rgb(48, 255, 48);
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Modal Settings */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .server-status {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .close-btn {
+            background-color: #E57373;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .close-btn:hover {
+            background-color: #D32F2F;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Bot Predictor Spaceman</h1>
+        <p>Version 6.8.47</p>
+    </div>
+
+    <!-- Start page content -->
+    <div class="start-container" id="start-container">
+        <button onclick="startApp()">Mulai</button>
+        <button onclick="openSettings()">Setting</button>
+    </div>
+
+    <!-- Connecting text -->
+    <div class="connecting" id="connecting">
+        Menyambungkan ke server...
+    </div>
+
+    <div class="sukses" id="sukses">
+        sukses menyambungkan ke server
+    </div>
+
+    <!-- Main content -->
+    <div class="container" id="main-container">
+        <div class="result" id="result">0.00</div>
+        <div class="status" id="status">menganalisis</div>
+        <div class="success" id="success">sukses</div>
+        <button onclick="generateRandomNumber()">Predict Now</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settings-modal">
+        <h2>Pengaturan</h2>
+        <div class="server-status">Server Status: <span style="color: green; font-weight: bold;">On</span></div>
+        <button class="close-btn" onclick="closeSettings()">Tutup</button>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        const numbers = [1.94, 1.01, 2.44];
+
+        function startApp() {
+            document.getElementById('start-container').style.display = 'none'; 
+            const connectingElement = document.getElementById('connecting');
+            connectingElement.style.display = 'block'; 
+
+            setTimeout(() => {
+                connectingElement.style.opacity = 0;
+                setTimeout(() => {
+                    connectingElement.style.display = 'none'; 
+                    const suksesElement = document.getElementById('sukses');
+                    suksesElement.style.display = 'block'; 
+                    setTimeout(() => {
+                        suksesElement.style.display = 'none'; 
+                        document.getElementById('main-container').style.display = 'block'; 
+                    }, 2000);
+                }, 2000);
+            }, 2000);
+        }
+
+        function generateRandomNumber() {
+            const resultElement = document.getElementById('result');
+            const statusElement = document.getElementById('status');
+            const successElement = document.getElementById('success');
+
+            successElement.style.display = 'none';
+            statusElement.style.display = 'block';
+
+            setTimeout(() => {
+                resultElement.textContent = numbers[currentIndex].toFixed(2) + 'x';
+                statusElement.style.display = 'none';
+                successElement.style.display = 'block';
+
+                currentIndex = (currentIndex + 1) % numbers.length;
+            }, 1000);
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
